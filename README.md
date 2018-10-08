@@ -15,6 +15,7 @@ It has dependencies on some standard Python libraries and the following:
 ## Installation
 0. Download the repository zip file and uncompress it.
 1. Edit teslaTweets.py with the information (Twitter and Tesla account).
+2. Edit MILES_MILESTONES.txt, enter the next milestone you want to record/tweet on the last line of the file.
 2. Run the following command with your Python interpreter: `python teslaTweets.py`
 
 

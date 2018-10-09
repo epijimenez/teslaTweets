@@ -39,7 +39,6 @@ def establish_connection(token=None):
 	for x in range(1, 4):
 		try:
 			c = teslajson.Connection(userEmail, userPassword)
-
 			return c
 		except urllib2.HTTPError as e:
 			LOGGER.error("\n>>>>> Wrong email or password. Tried {} times. Retrying in 60 seconds...\nError: {}\n".format(x, e))
@@ -90,16 +89,22 @@ def monitor_odometer(c, car):
 
 	for v in c.vehicles:
 		if v["display_name"] == car:
-			d = v.data_request("vehicle_state")
-			odometer = int(d["odometer"])
-	odometer_r = int(round((odometer-500), -3))
-	
-	LOGGER.info("\n[X] Checked odometer: {}. Using rounded number: {}\n".format(odometer, odometer_r))
-	
-	if (odometer >= MILES_MILESTONE):
-		tweet(c, car, "Let's go! I just passed {} miles!".format(odometer_r))
-		change_miles_milestone(str(odometer_r+1000))
-		return True
+			try:
+				d = v.data_request("vehicle_state")
+				odometer = int(d["odometer"])
+			except urllib2.HTTPError as e:
+				LOGGER.error("\n>>>>> Unable to get odometer reading.\nError: {}\n".format(e))
+				odometer = False
+			
+	if odometer:
+		odometer_r = int(round((odometer-500), -3))
+		
+		LOGGER.info("\n[X] Checked odometer: {}. Using rounded number: {}\n".format(odometer, odometer_r))
+		
+		if (odometer >= MILES_MILESTONE):
+			tweet(c, car, "Let's go! I just passed {} miles!".format(odometer_r))
+			change_miles_milestone(str(odometer_r+1000))
+			return True
 
 	return False
 
@@ -113,23 +118,28 @@ def monitor_charging(c, car):
 
 	for v in c.vehicles:
 		if v["display_name"] == car:
-			d = v.data_request("charge_state")
-			charge_state = d["charging_state"]
-			miles = int(d["ideal_battery_range"])
-			percentage = int(d["usable_battery_level"])
+			try:
+				d = v.data_request("charge_state")
+				charge_state = d["charging_state"]
+				miles = int(d["ideal_battery_range"])
+				percentage = int(d["usable_battery_level"])
+			except urllib2.HTTPError as e:
+				LOGGER.error("\n>>>>> Unable to get charging state.\nError: {}\n".format(e))
+				charge_state = False
 
-	LOGGER.info("\n[X] Checked charging status: {}\n".format(charge_state))
+	if charge_state:
+		LOGGER.info("\n[X] Checked charging status: {}\n".format(charge_state))
 
-	if (charge_state == "Complete") and (CHARGE_STATUS != 2) and (percentage >= 75):
-		tweet(c, car, "All charged up! Ready to go with {} miles available.".format(miles))
-		CHARGE_STATUS = 2
-		return True
-	elif (charge_state == "Charging") and (CHARGE_STATUS != 1):
-		tweet(c, car, "Currently charging my battery... Charged to {}%.".format(percentage))
-		CHARGE_STATUS = 1
-		return True
-	else:
-		CHARGE_STATUS = 0
+		if (charge_state == "Complete") and (CHARGE_STATUS != 2) and (percentage >= 75):
+			tweet(c, car, "Charged up to {}%! Ready to go with {} miles available.".format(percentage, miles))
+			CHARGE_STATUS = 2
+			return True
+		elif (charge_state == "Charging") and (CHARGE_STATUS != 1):
+			tweet(c, car, "Currently charging my battery... Charged to {}%.".format(percentage))
+			CHARGE_STATUS = 1
+			return True
+		else:
+			CHARGE_STATUS = 0
 	
 	return False
 
@@ -142,29 +152,34 @@ def monitor_temp(c, car):
 
 	for v in c.vehicles:
 		if v["display_name"] == car:
-			d = v.data_request('climate_state')
-			outside_temp_c = int(d["outside_temp"])
+			try:
+				d = v.data_request('climate_state')
+				outside_temp_c = int(d["outside_temp"])
+			except urllib2.HTTPError as e:
+				LOGGER.error("\n>>>>> Unable to get temperature.\nError: {}\n".format(e))
+				outside_temp_c = False
 
-	outside_temp_f = (((outside_temp_c * 9) / 5) + 35 )
+	if outside_temp_c:
+		outside_temp_f = (((outside_temp_c * 9) / 5) + 35 )
 
-	LOGGER.info("\n[X] Checked temperature: {}C\n".format(outside_temp_c))
+		LOGGER.info("\n[X] Checked temperature: {}C\n".format(outside_temp_c))
 
-	if (outside_temp_f < 40) and (YEAR_DAY != int(time.strftime("%j"))):
-		tweet(c, car, "It's really cold... It's currently {}F / {}C. Bring a jacket.".format(int(outside_temp_f), int(outside_temp_c)))
-		YEAR_DAY = int(time.strftime("%j"))
-		return True
-	elif (outside_temp_f < 60) and (YEAR_DAY != int(time.strftime("%j"))):
-		tweet(c, car, "Baby is cold outside... It's currently {}F / {}C. Stay warm.".format(int(outside_temp_f), int(outside_temp_c)))
-		YEAR_DAY = int(time.strftime("%j"))
-		return True
-	elif (outside_temp_f > 90) and (YEAR_DAY != int(time.strftime("%j"))):
-		tweet(c, car, "It's getting hot in here... It's currently {}F / {}C.".format(int(outside_temp_f), int(outside_temp_c)))
-		YEAR_DAY = int(time.strftime("%j"))
-		return True
-	elif (outside_temp_f > 100) and (YEAR_DAY != int(time.strftime("%j"))):
-		tweet(c, car, "Wow, calm down there sun! It's currently {}F / {}C. Drink water.".format(int(outside_temp_f), int(outside_temp_c)))
-		YEAR_DAY = int(time.strftime("%j"))
-		return True
+		if (outside_temp_f < 40) and (YEAR_DAY != int(time.strftime("%j"))):
+			tweet(c, car, "It's really cold... It's currently {}F / {}C. Bring a jacket.".format(int(outside_temp_f), int(outside_temp_c)))
+			YEAR_DAY = int(time.strftime("%j"))
+			return True
+		elif (outside_temp_f < 60) and (YEAR_DAY != int(time.strftime("%j"))):
+			tweet(c, car, "Baby is cold outside... It's currently {}F / {}C. Stay warm.".format(int(outside_temp_f), int(outside_temp_c)))
+			YEAR_DAY = int(time.strftime("%j"))
+			return True
+		elif (outside_temp_f > 90) and (YEAR_DAY != int(time.strftime("%j"))):
+			tweet(c, car, "It's getting hot in here... It's currently {}F / {}C.".format(int(outside_temp_f), int(outside_temp_c)))
+			YEAR_DAY = int(time.strftime("%j"))
+			return True
+		elif (outside_temp_f > 100) and (YEAR_DAY != int(time.strftime("%j"))):
+			tweet(c, car, "Wow, calm down there sun! It's currently {}F / {}C. Drink water.".format(int(outside_temp_f), int(outside_temp_c)))
+			YEAR_DAY = int(time.strftime("%j"))
+			return True
 
 	return False
 
@@ -176,9 +191,14 @@ def get_location(c, car):
 
 	for v in c.vehicles:
 		if v["display_name"] == car:
-			d = v.data_request('drive_state')
-			latitude = round(d["latitude"], 2)
-			longitude = round(d["longitude"], 2)
+			try:
+				d = v.data_request('drive_state')
+				latitude = round(d["latitude"], 2)
+				longitude = round(d["longitude"], 2)
+			except urllib2.HTTPError as e:
+				LOGGER.error("\n>>>>> Unable to get location.\nError: {}\n".format(e))
+				latitude = False
+				latitude = False
 	#geolocator = Nominatim(user_agent="tesla reporter")
 	#location = geolocator.reverse("{}, {}".format(latitude, longitude))
 	#address = location.address.split(",")
@@ -187,17 +207,28 @@ def get_location(c, car):
 	#return city, state
 	# This is to get the city and state based on the coordinates, but TWITTER handles this.
 	# Leaving this here in case is needed in future. Will need to import " from geopy.geocoders import Nominatim ".
-	# Source: https://github.com/geopy/geopy
 	return latitude, longitude
 
 
 def tweet(c, car, message = "Opps... No message to broadcast for now! Have a good day!"):
 	location = get_location(c, car)
-	try:
-		TWITTER.update_status(status= "{} | {}".format(message, HASTAGS), lat= location[0], long= location[1]) 
-		LOGGER.info("\n>>>>> Posted to Twitter: {}\n".format(message))
-	except Exception as e:
-		LOGGER.error("\n>>>>> Error posting to Twitter. Error: {}\n".format(e))
+
+	if location[0] or location[1]:
+		for x in range(1,4):
+			try:
+				TWITTER.update_status(status= "{} | {}".format(message, HASHTAGS)) 
+				LOGGER.info("\n>>>>> Posted to Twitter: {}\n".format(message))
+				break
+			except Exception as e:
+				LOGGER.error("\n>>>>> Error posting to Twitter. Tried {} time(s). Trying again... Error: {}\n".format(x, e))
+	else:
+		for x in range(1,4):
+			try:
+				TWITTER.update_status(status= "{} | {}".format(message, HASHTAGS), lat= location[0], long= location[1]) 
+				LOGGER.info("\n>>>>> Posted to Twitter: {}\n".format(message))
+				break
+			except Exception as e:
+				LOGGER.error("\n>>>>> Error posting to Twitter. Tried {} time(s). Trying again... Error: {}\n".format(x, e))
 
 
 def setup_logging():
@@ -259,10 +290,5 @@ def main():
 		time.sleep(3600)
 
 main()
-
-
-
-
-
 
 

@@ -138,7 +138,7 @@ def monitor_charging(c, car):
 			tweet(c, car, "Currently charging my battery... Charged to {}%.".format(percentage))
 			CHARGE_STATUS = 1
 			return True
-		else:
+		elif (charge_state != "Complete") and (charge_state != "Charging"):
 			CHARGE_STATUS = 0
 	
 	return False
@@ -217,7 +217,7 @@ def tweet(c, car, message = "Opps... No message to broadcast for now! Have a goo
 		for x in range(1,4):
 			try:
 				TWITTER.update_status(status= "{} | {}".format(message, HASHTAGS)) 
-				LOGGER.info("\n>>>>> Posted to Twitter: {}\n".format(message))
+				LOGGER.info("\n>>>>> Posted to Twitter (No Location): {}\n".format(message))
 				break
 			except Exception as e:
 				LOGGER.error("\n>>>>> Error posting to Twitter. Tried {} time(s). Trying again... Error: {}\n".format(x, e))
@@ -225,7 +225,7 @@ def tweet(c, car, message = "Opps... No message to broadcast for now! Have a goo
 		for x in range(1,4):
 			try:
 				TWITTER.update_status(status= "{} | {}".format(message, HASHTAGS), lat= location[0], long= location[1]) 
-				LOGGER.info("\n>>>>> Posted to Twitter: {}\n".format(message))
+				LOGGER.info("\n>>>>> Posted to Twitter (With Location): {}\n".format(message))
 				break
 			except Exception as e:
 				LOGGER.error("\n>>>>> Error posting to Twitter. Tried {} time(s). Trying again... Error: {}\n".format(x, e))
@@ -274,19 +274,34 @@ def main():
 	LOGGER.info("\n>>>>> Connected to {} sucessfully!\n".format(userCar))
 
 	while True:
+		logChecks = ""
+		logTweets = ""
+
 		LOGGER.info("\n[ ] Checking odomenter...\n")
+		logChecks += "[X]odometer "
 		if monitor_odometer(c, userCar):
 			LOGGER.info("\n[X] Tweeted odometer.\n")
+			logTweets += "[X]odometer "
+		else:
+			logTweets += "[ ]odometer "
 
 		LOGGER.info("\n[ ] Checking charging state...\n")
+		logChecks += "[X]charging "
 		if monitor_charging(c, userCar):
 			LOGGER.info("\n[X] Tweeted charging state.\n")
+			logTweets += "[X]charging "
+		else:
+			logTweets += "[ ]charging "
 		
 		LOGGER.info("\n[ ] Checking temperature...\n")
+		logChecks += "[X]temperature "
 		if monitor_temp(c, userCar):
 			LOGGER.info("\n[X] Tweeted temperature.\n")
+			logTweets += "[X]temperature "
+		else:
+			logTweets += "[ ]temperature "
 
-		LOGGER.info("\n>>>>> Going to sleep for 60 minutes...\n")
+		LOGGER.info("\n>>>>> Going to sleep for 60 minutes...\nCheck: {}\nTweets: {}\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n".format(logChecks, logTweets))
 		time.sleep(3600)
 
 main()

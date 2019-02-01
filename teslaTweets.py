@@ -13,7 +13,7 @@ APP_KEY= "ENTER_YOUR_APP_KEY"
 APP_SECRET = "ENTER_YOUR_APP_SECRET"
 OAUTH_TOKEN = "ENTER_YOUR_OAUTH_TOKEN"
 OAUTH_TOKEN_SECRET = "ENTER_YOUR_OAUTH_TOKEN_SECRET"
-HASTAGS = "#TeslaTweets #Tesla @elonmusk" # Included in every outgoing tweet.
+HASHTAGS = "#TeslaTweets #Tesla" # Included in every outgoing tweet.
 TWITTER = None
 #	********************************************************************	#
 
@@ -102,7 +102,7 @@ def monitor_odometer(c, car):
 		LOGGER.info("\n[X] Checked odometer: {}. Using rounded number: {}\n".format(odometer, odometer_r))
 		
 		if (odometer >= MILES_MILESTONE):
-			tweet(c, car, "Let's go! I just passed {} miles!".format(odometer_r))
+			tweet(c, car, "Let's go! Today I passed {} miles!".format(odometer_r))
 			change_miles_milestone(str(odometer_r+1000))
 			return True
 

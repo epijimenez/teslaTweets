@@ -26,9 +26,7 @@ TESLA_CAR = "ENTER_YOUR_TESLA_CAR_NAME"
 
 #	GLOBAL VARIABLES
 #	********************************************************************	#
-CHARGE_STATUS = 0 # 0 = Not Charging, 1 = Charging, 2 = Charged
 YEAR_DAY = 0
-LOGGER = None
 #	********************************************************************	#
 
 

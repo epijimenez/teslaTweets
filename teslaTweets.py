@@ -14,6 +14,7 @@ APP_SECRET = "ENTER_YOUR_APP_SECRET"
 OAUTH_TOKEN = "ENTER_YOUR_OAUTH_TOKEN"
 OAUTH_TOKEN_SECRET = "ENTER_YOUR_OAUTH_TOKEN_SECRET"
 HASHTAGS = "#TeslaTweets #Tesla" # Included in every outgoing tweet.
+PERSONAL_TWITTER= "@iamepijimenez" # Account to ping when maintenance is needed
 TWITTER = None
 #	********************************************************************	#
 
@@ -186,7 +187,7 @@ def monitor_temp(c, car):
 
 	return False
 
-# TODO: Monitor Tire Rotation every ~6000 miles
+# TODO: Re-log last maintance on TeslaLog, so it will recent on the log (maybe?)
 def monitor_maintenance(c, car):
 	write_log('log', "Checking maintenance...")
 	maintenance_schedule = {'tire_rotation': 6250, 'brake_fluid': 25000, 'battery_coolant': 50000}
@@ -233,25 +234,27 @@ def monitor_maintenance(c, car):
 		if last_tire_rotation_delta >= maintenance_schedule['tire_rotation']:
 			write_log('maintenance_tr', (odometer))
 			logChecks += "[X]TireRotation "
-			if tweet(c, car, "Time to do tire rotation! {} miles have already passed.".format(int(last_tire_rotation_delta))):
+			if tweet(c, car, "Hey {} ! Time to do tire rotation! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_tire_rotation_delta))):
 				rettweet_sent = True
 		else:
 			logChecks += "[ ]TireRotation "
 		if last_brake_fluid_delta >= maintenance_schedule['brake_fluid']:
 			write_log('maintenance_bf', (odometer))
 			logChecks += "[X]BrakeFluid "
-			if tweet(c, car, "Time to change that brake fluid! {} miles have already passed.".format(int(last_brake_fluid_delta))):
+			if tweet(c, car, "Hey {} ! Time to change that brake fluid! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_brake_fluid_delta))):
 				tweet_sent = True
 		else:
 			logChecks += "[ ]BrakeFluid "
 		if last_battery_coolant_delta >= maintenance_schedule['battery_coolant']:
 			write_log('maintenance_bc', (odometer))
 			logChecks += "[X]BatteryCoolant "
-			if tweet(c, car, "WOW! Time to change the battery coolant!! {} miles have already passed.".format(int(last_battery_coolant_delta))):
+			if tweet(c, car, "WOW! {} time to change the battery coolant!! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_battery_coolant_delta))):
 				tweet_sent = True
 		else:
 			logChecks += "[ ]BatteryCoolant "
-		write_log('log', "Checked maintenance. {}".format(logChecks))
+		#To check if tire rotation math is working correctly
+		#write_log('log', "Last rotation done {} miles ago.".format(last_tire_rotation_delta))
+		write_log('log', "Maintenance needed: {}".format(logChecks))
 	
 	if tweet_sent:
 		return True
@@ -320,7 +323,7 @@ def read_log(lookup=None):
 	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'charge', 'error', 'log']
 	if lookup in validData:
 		try:
-			with open("TeslaLog.txt", "r") as f:
+			with open(LOG_PATH, "r") as f:
 				lines = f.readlines()
 				#return lines[-1]
 				for i in reversed(lines):
@@ -336,7 +339,7 @@ def write_log(writeup=None, data=None):
 	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'charge', 'error', 'log']
 	if writeup in validData:
 		try:
-			with open("TeslaLog.txt", "a") as f:
+			with open(LOG_PATH, "a") as f:
 				f.write("\n{}: {}/{}".format(time.asctime(), writeup, str(data)))
 		except Exception as e:
 			return False

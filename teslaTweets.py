@@ -27,6 +27,11 @@ TESLA_PASSWORD = "ENTER_YOUR_TESLA_PASSWORD"
 TESLA_CAR = "ENTER_YOUR_TESLA_CAR_NAME"
 #	********************************************************************	#
 
+#	GOOGLE ACCOUNT INFORMATION 	(https://console.cloud.google.com)
+#	********************************************************************	#
+GOOGLE_API_KEY = "ENTER_YOUR_GOOGLE_API_KEY"
+#	********************************************************************	#
+
 #	GLOBAL VARIABLES
 #	********************************************************************	#
 YEAR_DAY = 0
@@ -292,7 +297,7 @@ def get_location(c, car):
 def road_trip(c, car):
 	g_latitude, g_longitude = get_location(c, car)
 
-	gmaps = googlemaps.Client(key='ENTER_YOUR_GOOGLE_API_KEY')
+	gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
 	reverse_geocode_result = gmaps.reverse_geocode((g_latitude, g_longitude))
 
 	#[0] To get the first result, [2] To get the city's short name

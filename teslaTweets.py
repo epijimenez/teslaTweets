@@ -3,6 +3,8 @@ import time
 import urllib2
 import logging
 import random
+import subprocess
+import googlemaps
 
 import teslajson				# Source: https://github.com/gglockner/teslajson
 from twython import Twython 	# Source: https://github.com/ryanmcgrath/twython
@@ -29,7 +31,9 @@ TESLA_CAR = "ENTER_YOUR_TESLA_CAR_NAME"
 #	********************************************************************	#
 YEAR_DAY = 0
 #	********************************************************************	#
-
+subprocess.call(['mkdir', '{}/logs'.format(os.getcwd())])
+LOG_PATH = os.getcwd() + '/logs/TeslaLog.txt'
+#	********************************************************************	#
 
 def t_setup():
 	c = establish_connection()
@@ -235,7 +239,7 @@ def monitor_maintenance(c, car):
 			write_log('maintenance_tr', (odometer))
 			logChecks += "[X]TireRotation "
 			if tweet(c, car, "Hey {} ! Time to do tire rotation! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_tire_rotation_delta))):
-				rettweet_sent = True
+				tweet_sent = True
 		else:
 			logChecks += "[ ]TireRotation "
 		if last_brake_fluid_delta >= maintenance_schedule['brake_fluid']:
@@ -284,6 +288,22 @@ def get_location(c, car):
 	# This is to get the city and state based on the coordinates, but TWITTER handles this.
 	# Leaving this here in case is needed in future. Will need to import " from geopy.geocoders import Nominatim ".
 	return latitude, longitude
+
+def road_trip(c, car):
+	g_latitude, g_longitude = get_location(c, car)
+
+	gmaps = googlemaps.Client(key='AIzaSyDL7OVjYx19bjUj54A554KGAxUEHRk8efY')
+	reverse_geocode_result = gmaps.reverse_geocode((g_latitude, g_longitude))
+
+	#[0] To get the first result, [2] To get the city's short name
+	geo_city = reverse_geocode_result[0]['address_components'][2]['short_name']
+	#[0] To get the first result, [4] To get the states's abbreviaton
+	geo_state = (reverse_geocode_result[0]['address_components'][4]['short_name'])
+
+	if tweet(c, car, "We on a road trip! I'm around {}, {}. Still on the road...".format(geo_city, geo_state)):
+		return True
+	
+	return False
 
 def tweet(c, car, message = "Opps... No message to broadcast for now! Have a good day!"):
 	location = get_location(c, car)
@@ -372,6 +392,13 @@ def main():
 	else:
 		logTweets += "[ ]maintenance "
 	
+	# Set the day-of-the-year you want this to run; in this case is only on 240 and 241
+	if int(time.strftime("%j")) == 240 or int(time.strftime("%j")) == 241:
+		if road_trip(c, userCar):
+			logTweets += "[X]roadtrip "
+		else:
+			logTweets += "[ ]roadtrip "
+
 	write_log('log', "Finished! Tweets: {}\n".format(logTweets))
 
 main()

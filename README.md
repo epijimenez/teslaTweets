@@ -18,7 +18,7 @@ It has dependencies on some standard Python libraries and the following:
 2. Edit teslaTweets.py with the information (Twitter and Tesla account).
 3. Run the following command with your Python interpreter: `python teslaTweets.py`
 4. This will create a log file and record current milage for the milestones (every 1000 miles) and maintance checks.
-
+5. EXTRA: If you will use the road_trip function, you need to create a Google API Key
 
 ## Credits
 Thanks to authors 

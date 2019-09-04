@@ -292,7 +292,7 @@ def get_location(c, car):
 def road_trip(c, car):
 	g_latitude, g_longitude = get_location(c, car)
 
-	gmaps = googlemaps.Client(key='AIzaSyDL7OVjYx19bjUj54A554KGAxUEHRk8efY')
+	gmaps = googlemaps.Client(key='ENTER_YOUR_GOOGLE_API_KEY')
 	reverse_geocode_result = gmaps.reverse_geocode((g_latitude, g_longitude))
 
 	#[0] To get the first result, [2] To get the city's short name

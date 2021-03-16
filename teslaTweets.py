@@ -4,7 +4,7 @@ import urllib2
 import logging
 import random
 import subprocess
-import googlemaps
+#import googlemaps
 
 import teslajson				# Source: https://github.com/gglockner/teslajson
 from twython import Twython 	# Source: https://github.com/ryanmcgrath/twython
@@ -52,8 +52,9 @@ def establish_connection():
 		try:
 			c = teslajson.Connection(userEmail, userPassword)
 			return c
-		except urllib2.HTTPError as e:
-			write_log('error', "Wrong email or password. Tried {} times. Retrying in 60 seconds. Error: {}".format(x, e))
+		except urllib.error.HTTPError as e:
+			if e.code == 401:
+				write_log('error', "Wrong email or password. Tried {} times. Retrying in 60 seconds. Error: {}: {}".format(x, e.code, e.reason))
 			time.sleep(60)
 			x =+ 1
 	write_log('error', "Can not connect to Tesla account. Verify credentials.")
@@ -69,11 +70,11 @@ def get_car(c):
 					v.wake_up()
 					time.sleep(10)
 					return str(userCar)
-				except urllib2.HTTPError as e:
-					write_log('error', "Unable to contact {}. Tried {} times. Retrying in 60 seconds. Error: {}".format(car, x, e))
+				except urllib.error.HTTPError as e:
+					write_log('error', "Unable to contact {}. Tried {} times. Retrying in 60 seconds. Error: {}: {}".format(car, x, e.code, e.reason))
 					x += 1
 			else:
-				write_log('error', "Couldn't find {} in your garage.\n".format(userCar))
+				write_log('error', "Couldn't find {} in your garage.".format(userCar))
 				return False
 	write_log('error', "Can not find car in Tesla account. Verify credentials.")
 	return False
@@ -86,8 +87,8 @@ def wakeup_car(c, car):
 					v.wake_up()
 					time.sleep(10)
 					return True
-				except urllib2.HTTPError as e:
-					write_log('error', "Unable to contact {}. Tried {} times. Retrying in 60 seconds. Error: {}".format(car, x, e))
+				except urllib.error.HTTPError as e:
+					write_log('error', "Unable to contact {}. Tried {} times. Retrying in 60 seconds. Error: {}: {}".format(car, x, e.code, e.reason))
 					x += 1
 					time.sleep(60)
 	return False
@@ -107,8 +108,11 @@ def monitor_odometer(c, car):
 			try:
 				d = v.data_request("vehicle_state")
 				odometer = int(d["odometer"])
-			except urllib2.HTTPError as e:
-				write_log('error', "Unable to get odometer reading. Error: {}".format(e))
+			except urllib.error.HTTPError as e:
+				if '405' in e.code:
+					write_log('error', "Unable to get odometer reading. Vehicle in service")
+				else:
+					write_log('error', "Unable to get odometer reading. Error: {}: {}".format(e.code, e.reason))
 				odometer = False
 	
 	if odometer:
@@ -139,12 +143,15 @@ def monitor_charging(c, car):
 				current_charge_state = d["charging_state"]
 				miles = int(d["ideal_battery_range"])
 				percentage = int(d["usable_battery_level"])
-			except urllib2.HTTPError as e:
-				write_log('error', "Unable to get charging state. Error: {}".format(e))
+			except urllib.error.HTTPError as e:
+				if '405' in e.code:
+					write_log('error', "Unable to get charging state. Vehicle in service")
+				else:
+					write_log('error', "Unable to get charging state. Error: {}: {}".format(e.code, e.reason))
 				current_charge_state = False
 
 	if current_charge_state:
-		write_log('log', "Checked charging status: {}".format(current_charge_state))
+		write_log('log', "Checked charging status: {} | {}%".format(current_charge_state,percentage))
 		if (current_charge_state == "Complete") and (prev_charge_state != "Complete") and (percentage >= 75):
 			if tweet(c, car, "Charged up to {}%! Ready to go with {} miles available.".format(percentage, miles)):
 				write_log('charge', current_charge_state)
@@ -168,14 +175,17 @@ def monitor_temp(c, car):
 			try:
 				d = v.data_request('climate_state')
 				outside_temp_c = int(d["outside_temp"])
-			except urllib2.HTTPError as e:
-				write_log('error', "Unable to get temperature.\nError: {}\n".format(e))
+			except urllib.error.HTTPError as e:
+				if '405' in e.code:
+					write_log('error', "Unable to get temperature. Vehicle in service")
+				else:
+					write_log('error', "Unable to get temperature. Error: {}: {}".format(e.code, e.reason))
 				outside_temp_c = False
 
 	if outside_temp_c:
 		outside_temp_f = (((outside_temp_c * 9) / 5) + 35 )
 
-		write_log('log', "[X] Checked temperature: {}C\n".format(outside_temp_c))
+		write_log('log', "[X] Checked temperature: {}C".format(outside_temp_c))
 
 		if (outside_temp_f < 40) and (YEAR_DAY != int(time.strftime("%j"))):
 			if tweet(c, car, "It's really cold... It's currently {}F / {}C. Bring a jacket.".format(int(outside_temp_f), int(outside_temp_c))):
@@ -196,10 +206,10 @@ def monitor_temp(c, car):
 
 	return False
 
-# TODO: Re-log last maintance on TeslaLog, so it will recent on the log (maybe?)
+# Added maintenance changes to the manual for TeslaSoftware Version 2019.36.1
 def monitor_maintenance(c, car):
 	write_log('log', "Checking maintenance...")
-	maintenance_schedule = {'tire_rotation': 6250, 'brake_fluid': 25000, 'battery_coolant': 50000}
+	maintenance_schedule = {'tire_rotation': 10000, 'brake_fluid': 20000, 'battery_coolant': 50000, 'ac_desiccant': 75000}
 
 	try:
 		last_tire_rotation = int(read_log('maintenance_tr'))
@@ -219,6 +229,12 @@ def monitor_maintenance(c, car):
 		write_log('error', "No battery coolant maintenance in log. Starting new.")
 		write_log('maintenance_bc', 0)
 		last_battery_coolant = 0
+	try:
+		last_ac_desiccant = int(read_log('maintenance_ac'))
+	except Exception as e:
+		write_log('error', "No AC Desiccant Bag in log. Starting new.")
+		write_log('maintenance_ac', 0)
+		last_battery_coolant = 0
 
 	odometer = False
 	wakeup_car(c, car)
@@ -228,13 +244,17 @@ def monitor_maintenance(c, car):
 			try:
 				d = v.data_request("vehicle_state")
 				odometer = int(d["odometer"])
-			except urllib2.HTTPError as e:
-				write_log('error', "Unable to get odometer reading. Error: {}".format(e))
+			except urllib.error.HTTPError as e:
+				if '405' in e.code:
+					write_log('error', "Unable to get odometer reading. Vehicle in service")
+				else:
+					write_log('error', "Unable to get odometer reading. Error: {}: {}".format(e.code, e.reason))
 				odometer = False
 
 	last_tire_rotation_delta = odometer - last_tire_rotation
 	last_brake_fluid_delta = odometer - last_brake_fluid
 	last_battery_coolant_delta = odometer - last_battery_coolant
+	last_ac_desiccant_delta = odometer - last_ac_desiccant
 
 	tweet_sent = False
 	logChecks = ""
@@ -250,17 +270,24 @@ def monitor_maintenance(c, car):
 		if last_brake_fluid_delta >= maintenance_schedule['brake_fluid']:
 			write_log('maintenance_bf', (odometer))
 			logChecks += "[X]BrakeFluid "
-			if tweet(c, car, "Hey {} ! Time to change that brake fluid! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_brake_fluid_delta))):
+			if tweet(c, car, "Hey {} ! Time to check that brakes (pads and fluid)! Also, change the air filter! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_brake_fluid_delta))):
 				tweet_sent = True
 		else:
 			logChecks += "[ ]BrakeFluid "
 		if last_battery_coolant_delta >= maintenance_schedule['battery_coolant']:
 			write_log('maintenance_bc', (odometer))
 			logChecks += "[X]BatteryCoolant "
-			if tweet(c, car, "WOW! {} time to change the battery coolant!! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_battery_coolant_delta))):
+			if tweet(c, car, "WOW! {} time to check the battery coolant!! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_battery_coolant_delta))):
 				tweet_sent = True
 		else:
 			logChecks += "[ ]BatteryCoolant "
+		if last_ac_desiccant_delta >= maintenance_schedule['ac_desiccant']:
+			write_log('maintenance_ac', (odometer))
+			logChecks += "[X]ACDesiccantBag "
+			if tweet(c, car, "Hey! {} time to replace A/C desiccant bag!! {} miles have already passed.".format(PERSONAL_TWITTER, int(last_ac_desiccant_delta))):
+				tweet_sent = True
+		else:
+			logChecks += "[ ]ACDesiccantBag "
 		#To check if tire rotation math is working correctly
 		#write_log('log', "Last rotation done {} miles ago.".format(last_tire_rotation_delta))
 		write_log('log', "Maintenance needed: {}".format(logChecks))
@@ -280,8 +307,11 @@ def get_location(c, car):
 				d = v.data_request('drive_state')
 				latitude = round(d["latitude"], 2)
 				longitude = round(d["longitude"], 2)
-			except urllib2.HTTPError as e:
-				write_log('error', "Unable to get location.\nError: {}\n".format(e))
+			except urllib.error.HTTPError as e:
+				if '405' in e.code:
+					write_log('error', "Unable to get location. Vehicle in service")
+				else:
+					write_log('error', "Unable to get location. Error: {}: {}".format(e.code, e.reason))
 				latitude = False
 				latitude = False
 	#geolocator = Nominatim(user_agent="tesla reporter")
@@ -345,28 +375,45 @@ def tweet(c, car, message = "Opps... No message to broadcast for now! Have a goo
 					return False
 
 def read_log(lookup=None):
-	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'charge', 'error', 'log']
+	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'maintenance_ac', 'charge', 'error', 'log']
 	if lookup in validData:
 		try:
-			with open(LOG_PATH, "r") as f:
-				lines = f.readlines()
-				#return lines[-1]
-				for i in reversed(lines):
-					if lookup in i:
-						return i.split("/")[-1].strip()
+			with open(LOG_PATH, 'r') as csv_file:
+				for row in reversed(list(csv.reader(csv_file))):
+					if lookup in row:
+						return(row[-1])
 		except IOError:
-			write_log('create')
+			# Create the file if it does not exists
+			if not os.path.isfile(LOG_PATH):
+				write_log('create')
 			return False
 	else:
 		return False
 
 def write_log(writeup=None, data=None):
-	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'charge', 'error', 'log']
+	curr_date = datetime.now().strftime("%Y-%m-%d")
+	curr_time = datetime.now().strftime("%H:%M:%S")
+	
+	validData = ['create', 'milestone', 'maintenance_tr', 'maintenance_bf', 'maintenance_bc', 'maintenance_ac', 'charge', 'error', 'log']
 	if writeup in validData:
 		try:
-			with open(LOG_PATH, "a") as f:
-				f.write("\n{}: {}/{}".format(time.asctime(), writeup, str(data)))
+			if writeup == 'create':
+				with open(LOG_PATH, 'a') as csv_file:
+					fieldnames = ['date', 'time', 'type', 'message']
+					writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+					writer.writeheader()
+					return True
+			else:
+				# Create the file if it does not exists
+				if not os.path.isfile(LOG_PATH):
+						write_log('create')
+				with open(LOG_PATH, 'a') as csv_file:
+					fieldnames = ['date', 'time', 'type', 'message']
+					writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+					writer.writerow({'date': curr_date, 'time': curr_time, 'type': writeup, 'message':data})
+					return True
 		except Exception as e:
+			print("error: {}".format(e))
 			return False
 	else:
 		return False
@@ -375,6 +422,7 @@ def main():
 	global TWITTER
 	TWITTER = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 	
+	write_log('log', "")
 	c, userCar = t_setup()
 	if c and userCar:
 		write_log('log', "Connected to {} successfully!".format(userCar))
@@ -397,14 +445,13 @@ def main():
 	else:
 		logTweets += "[ ]maintenance "
 	
-	# Set the day-of-the-year you want this to run; in this case is only on 240 and 241
 	if int(time.strftime("%j")) == 240 or int(time.strftime("%j")) == 241:
 		if road_trip(c, userCar):
 			logTweets += "[X]roadtrip "
 		else:
 			logTweets += "[ ]roadtrip "
 
-	write_log('log', "Finished! Tweets: {}\n".format(logTweets))
+	write_log('log', "Finished! Tweets: {}".format(logTweets))
 
 main()
 

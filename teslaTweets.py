@@ -21,10 +21,9 @@ PERSONAL_TWITTER = "@youraccount"  # Account to ping when maintenance is needed
 #	TESLA ACCOUNT INFORMATION 	(https://www.tesla.com/teslaaccount)
 #	TESLA REFRESH TOKEN         (Auth for Tesla iOS App)
 #	********************************************************************	#
-TESLA_EMAIL = "ENTER_YOUR_TESLA_EMAIL"
-TESLA_PASSWORD = "ENTER_YOUR_TESLA_PASSWORD"
-TESLA_CAR = "ENTER_YOUR_TESLA_CAR_NAME"
-TESLA_REFRESH_TOKEN = = "ENTER_YOUR_REFRESH_TOKEN"
+USER_TESLA_EMAIL = "ENTER_YOUR_TESLA_EMAIL"
+USER_TESLA_CAR = "ENTER_YOUR_TESLA_CAR_NAME"
+TESLA_REFRESH_TOKEN = "ENTER_YOUR_REFRESH_TOKEN"
 #	********************************************************************	#
 
 #	GOOGLE ACCOUNT INFORMATION 	(https://console.cloud.google.com)
@@ -35,11 +34,10 @@ GOOGLE_API_KEY = "ENTER_YOUR_GOOGLE_API_KEY"
 #	GLOBAL VARIABLES
 #	********************************************************************	#
 YEAR_DAY = 0  # time.localtime().tm_yday
-global TWITTER
 global TWITTERv2
 global X_TESLA_CAR
 
-LOG_PATH = os.getenv('HOME') + '/logs' 
+LOG_PATH = os.getenv('HOME') + '/logs'
 LOG_FILE = LOG_PATH + '/TeslaLog.csv'
 
 if not os.path.exists(LOG_PATH):
@@ -55,7 +53,7 @@ def t_setup_car():
             tesla_account.refresh_token(refresh_token=TESLA_REFRESH_TOKEN)
     except teslapy.HTTPError as e:
         write_log('error',
-                  "Wrong a∂ccount information.Error: {}".format(e))
+                  "Wrong account information.Error: {}".format(e))
         return False
     try:
         for vehicle in tesla_account.vehicle_list():
@@ -247,8 +245,9 @@ def monitor_maintenance():
         if last_tire_rotation_delta >= maintenance_schedule['tire_rotation']:
             write_log('maintenance_tr', odometer)
             logChecks += "[X]TireRotation "
-            if tweet("Hey {} ! Time to do tire rotation! {:,} miles have already passed since last service.".format(PERSONAL_TWITTER,
-                                                                                               int(last_tire_rotation_delta))):
+            if tweet("Hey {} ! Time to do tire rotation! {:,} miles have already passed since last service.".format(
+                    PERSONAL_TWITTER,
+                    int(last_tire_rotation_delta))):
                 tweet_sent = True
         else:
             logChecks += "[ ]TireRotation "
@@ -258,28 +257,28 @@ def monitor_maintenance():
             if tweet(
                     "Hey {} ! Time to check that brakes (pads and fluid)! Also, change the air filter! {:,} miles have "
                     "already passed.".format(
-                            PERSONAL_TWITTER, int(last_brake_fluid_delta))):
+                        PERSONAL_TWITTER, int(last_brake_fluid_delta))):
                 tweet_sent = True
         else:
             logChecks += "[ ]BrakeFluid "
         if last_battery_coolant_delta >= maintenance_schedule['battery_coolant']:
             write_log('maintenance_bc', (odometer))
             logChecks += "[X]BatteryCoolant "
-            if tweet("WOW! {} time to check the battery coolant!! {:,} miles have already passed since last service.".format(
-                    PERSONAL_TWITTER, int(last_battery_coolant_delta))):
+            if tweet(
+                    "WOW! {} time to check the battery coolant!! {:,} miles have already passed since last service.".format(
+                        PERSONAL_TWITTER, int(last_battery_coolant_delta))):
                 tweet_sent = True
         else:
             logChecks += "[ ]BatteryCoolant "
         if last_ac_desiccant_delta >= maintenance_schedule['ac_desiccant']:
             write_log('maintenance_ac', (odometer))
             logChecks += "[X]ACDesiccantBag "
-            if tweet("Hey! {} time to replace A/C desiccant bag!! {:,} miles have already passed since last service.".format(
-                    PERSONAL_TWITTER, int(last_ac_desiccant_delta))):
+            if tweet(
+                    "Hey! {} time to replace A/C desiccant bag!! {:,} miles have already passed since last service.".format(
+                        PERSONAL_TWITTER, int(last_ac_desiccant_delta))):
                 tweet_sent = True
         else:
             logChecks += "[ ]ACDesiccantBag "
-        # To check if tire rotation math is working correctly
-        # write_log('log', "Last rotation done {:,} miles ago.".format(last_tire_rotation_delta))
         write_log('log', "Maintenance needed: {}".format(logChecks))
 
     if tweet_sent:
@@ -313,20 +312,21 @@ def road_trip():
 
 
 def tweet(message="Opps... No message to broadcast for now! Have a good day!"):
+    location = False
     location = get_location()
 
-    # if location[0] and location[1]:
-    # No location for now... For more info:
-    # https://stackoverflow.com/questions/75817366/how-to-post-a-tweet-with-geo-data-using-twitter-api-v2-0
-    if False:
+    # TODO: Bring back location; For more info: https://stackoverflow.com/questions/75817366/how-to-post-a-tweet-with-geo-data-using-twitter-api-v2-0
+    location = False
+
+    if location:
         for x in range(1, 4):
             try:
                 payload = {
-                "text": message,
-                "geo": {
-                  "type": "Point",
-                  "coordinates": [location[0], location[1]]
-                  }
+                    "text": message,
+                    "geo": {
+                        "type": "Point",
+                        "coordinates": [location[0], location[1]]
+                    }
                 }
                 response = TWITTERv2.post("https://api.twitter.com/2/tweets", json=payload)
                 #TWITTER.update_status(status="{} | {}".format(message, HASHTAGS), lat=location[0], long=location[1])
@@ -336,7 +336,7 @@ def tweet(message="Opps... No message to broadcast for now! Have a good day!"):
                 else:
                     raise Exception(
                         "Tweet Error (Loc): {} {}".format(response.status_code, response.text)
-                        )
+                    )
             except Exception as e:
                 if 'duplicate' in str(e):
                     write_log('error', "Twitter posting. Tries ({}). Error: {}".format(x, 'Duplicate Tweet'))
@@ -348,7 +348,7 @@ def tweet(message="Opps... No message to broadcast for now! Have a good day!"):
         for x in range(1, 4):
             try:
                 payload = {
-                "text": message
+                    "text": message
                 }
                 response = TWITTERv2.post("https://api.twitter.com/2/tweets", json=payload)
                 #TWITTER.update_status(status="{} | {}".format(message, HASHTAGS))
@@ -358,7 +358,7 @@ def tweet(message="Opps... No message to broadcast for now! Have a good day!"):
                 else:
                     raise Exception(
                         "Tweet Error: {} {}".format(response.status_code, response.text)
-                        )
+                    )
             except Exception as e:
                 if 'duplicate' in str(e):
                     write_log('error', "Twitter posting. Tries ({}). Error: {}".format(x, 'Duplicate Tweet'))
@@ -423,9 +423,10 @@ if __name__ == '__main__':
         client_secret=APP_SECRET,
         resource_owner_key=OAUTH_TOKEN,
         resource_owner_secret=OAUTH_TOKEN_SECRET,
-        )
+    )
 
     X_TESLA_CAR = t_setup_car()
+    print(X_TESLA_CAR)
 
     logTweets = ""
 

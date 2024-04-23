@@ -1,8 +1,9 @@
 from setuptools import setup
+import teslatweet
 
 setup(
     name='teslatweet',
-    version='0.2.0',
+    version='0.2.1',
     py_modules=['teslatweet'],
     install_requires=["teslapy", "googlemaps", "datetime"],
     dependency_links=[

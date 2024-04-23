@@ -1,4 +1,9 @@
 from teslatweet.operations import teslatweets
 
-if __name__ == "__main__":
+
+def main():
     teslatweets()
+
+
+if __name__ == "__main__":
+    main()

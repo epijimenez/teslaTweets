@@ -1,0 +1,6 @@
+--index-url https://pypi.org/simple/
+TeslaPy>=2.9.0
+googlemaps>=4.10.0
+DateTime>=5.5
+requests-oauthlib>=2.0.0
+requests>=2.31.0

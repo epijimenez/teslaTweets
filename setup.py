@@ -3,9 +3,10 @@ import teslatweet
 
 setup(
     name='teslatweet',
-    version='0.2.1',
+    version='0.2.2',
     py_modules=['teslatweet'],
-    install_requires=["teslapy", "googlemaps", "datetime"],
+    python_requires=">=3.9",
+    install_requires=["teslapy", "googlemaps", "datetime", "requests_oauthlib"],
     dependency_links=[
         "https://pypi.org/project/"
     ],

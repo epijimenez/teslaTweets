@@ -88,6 +88,7 @@ class UserAccount:
                             vehicle.sync_wake_up()
                             # write_log('log', "Connected to {} successfully!".format(str(vehicle["display_name"])))
                             self._tesla = vehicle
+                            break
                         except teslapy.VehicleError as e:
                             print(f"Error: Unable to connect Tesla car [{e}]")
                             # write_log('error',

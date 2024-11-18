@@ -15,7 +15,6 @@ LOG_FILE = LOG_PATH + '/TeslaLog.csv'
 YEAR_DAY = 0  # time.localtime().tm_yday
 UserAccount = UserAccount()
 
-
 def wakeup_car():
     try:
         UserAccount.tesla.sync_wake_up()

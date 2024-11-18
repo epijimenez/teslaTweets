@@ -119,6 +119,7 @@ else:
     with open(dir_teslatweet_userdata, "w") as outfile:
         outfile.write(json_object)
         logging.warning(f"User data file created at {dir_teslatweet_userdata}. Please run again.")
+        exit()
 
 class UserAccount:
     def __init__(self):
@@ -182,7 +183,7 @@ class UserAccount:
                             vehicle.sync_wake_up()
                             # write_log('log', "Connected to {} successfully!".format(str(vehicle["display_name"])))
                             self._tesla = vehicle
-                            break
+                            return self._tesla
                         except teslapy.VehicleError as e:
                             logging.error(f"Unable to connect Tesla car [{e}]")
                             # write_log('error',

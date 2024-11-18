@@ -4,6 +4,7 @@ import csv
 from datetime import datetime
 import subprocess
 from teslatweet.userdata import UserAccount
+import logging
 
 """
 GLOBAL VARIABLES
@@ -234,6 +235,8 @@ def get_location():
 
 def road_trip():
     g_latitude, g_longitude = get_location()
+    if UserAccount.google is None:
+        return False
     reverse_geocode_result = UserAccount.google.reverse_geocode((g_latitude, g_longitude))
 
     # [0] To get the first result, [2] To get the city's short name

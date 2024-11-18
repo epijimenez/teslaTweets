@@ -53,10 +53,11 @@ else:
     TESLA_REFRESH_TOKEN = "TESLA_REFRESH_TOKEN"
     GOOGLE_API_KEY = "GOOGLE_API_KEY"
 
+    verified_twitter = "n"
+    verified_tesla = "n"
+    verified_google = "n"
+
     for n in range(3):
-        verified_twitter = "n"
-        verified_tesla = "n"
-        verified_google = "n"
         if verified_twitter == "y" and verified_tesla == "y" and verified_google == "y":
             break
         if verified_twitter == "n":
@@ -68,7 +69,7 @@ else:
             TWITTER_HASHTAGS = "#TeslaTweets"
             TWITTER_PERSONAL = input("Twitter Username: ")
 
-            print("Verify Twitter Data:")
+            print("\nVerify Twitter Data:")
             print(f"TWITTER_APP_KEY: \t{TWITTER_APP_KEY}")
             print(f"TWITTER_APP_SECRET: \t{TWITTER_APP_SECRET}")
             print(f"TWITTER_OAUTH_TOKEN: \t{TWITTER_OAUTH_TOKEN}")
@@ -83,7 +84,7 @@ else:
             TESLA_USER_CAR = input("Tesla Car's Name: ")
             TESLA_REFRESH_TOKEN = input("Tesla Refresh Token: ")
 
-            print("Verify Tesla data:")
+            print("\nVerify Tesla data:")
             print(f"TESLA_USER_EMAIL: \t{TESLA_USER_EMAIL}")
             print(f"TESLA_USER_CAR: \t{TESLA_USER_CAR}")
             print(f"TESLA_REFRESH_TOKEN: \t{TESLA_REFRESH_TOKEN}")
@@ -96,7 +97,7 @@ else:
                 GOOGLE_API_KEY = "GOOGLE_API_KEY"
                 verified_google = "y"
             else:
-                print("Verify Google data:")
+                print("\nVerify Google data:")
                 print(f"GOOGLE_API_KEY: \t{GOOGLE_API_KEY}")
                 verified_google = input("Twitter Google Correct? (y/n): ")[0].lower()
 

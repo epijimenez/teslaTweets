@@ -36,9 +36,9 @@ else:
     print("> Get Tesla data from: https://www.tesla.com/teslaaccount, and Auth for Tesla (iOS App)")
     print("> Get Google data from (optional): https://console.cloud.google.com")
 
-    run_setup = input("\nRun first time boot setup now? (y/n)")[0].lower()
+    run_setup = input("\nRun first time boot setup now? (y/n): ")[0].lower()
     if run_setup != "y":
-        raise Exception("Unable to run teslatweet. Need to set up user data.")
+        exit()
 
     print(f"Running first time boot to gather user data")
 
@@ -75,7 +75,7 @@ else:
             print(f"TWITTER_OAUTH_TOKEN_SECRET: \t{TWITTER_OAUTH_TOKEN_SECRET}")
             #print(f"TWITTER_HASHTAGS: \t{TWITTER_HASHTAGS}")
             print(f"TWITTER_PERSONAL: \t{TWITTER_PERSONAL}")
-            verified_twitter = input("Twitter Data Correct (y/n)? ")[0].lower()
+            verified_twitter = input("Twitter Data Correct? (y/n): ")[0].lower()
 
         if verified_tesla == "n":
             print(f"\nGathering Tesla data...")
@@ -87,7 +87,7 @@ else:
             print(f"TESLA_USER_EMAIL: \t{TESLA_USER_EMAIL}")
             print(f"TESLA_USER_CAR: \t{TESLA_USER_CAR}")
             print(f"TESLA_REFRESH_TOKEN: \t{TESLA_REFRESH_TOKEN}")
-            verified_tesla = input("Twitter Tesla Correct (y/n)? ")[0].lower()
+            verified_tesla = input("Twitter Tesla Correct? (y/n): ")[0].lower()
 
         if verified_google == "n":
             print(f"\nGathering Google data...")
@@ -98,7 +98,7 @@ else:
             else:
                 print("Verify Google data:")
                 print(f"GOOGLE_API_KEY: \t{GOOGLE_API_KEY}")
-                verified_google = input("Twitter Google Correct (y/n)? ")[0].lower()
+                verified_google = input("Twitter Google Correct? (y/n): ")[0].lower()
 
     dictionary = {
         "TWITTER_APP_KEY": TWITTER_APP_KEY,

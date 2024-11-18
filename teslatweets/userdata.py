@@ -118,7 +118,7 @@ else:
 
     with open(dir_teslatweet_userdata, "w") as outfile:
         outfile.write(json_object)
-        logging.warning(f"User data file created at {dir_teslatweet_userdata}. Please run again.")
+        logging.info(f"User data file created at {dir_teslatweet_userdata}. Please run again.")
         exit()
 
 class UserAccount:

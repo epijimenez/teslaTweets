@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='teslatweets',
-    version='1.1.2',
+    version='1.1.3',
     py_modules=['teslatweets'],
     python_requires=">=3.9",
     install_requires=["TeslaPy", "googlemaps", "DateTime", "requests_oauthlib", "requests"],

@@ -68,6 +68,8 @@ else:
             TWITTER_OAUTH_TOKEN_SECRET = input("Twitter OAuth Token Secret: ")
             TWITTER_HASHTAGS = "#TeslaTweets"
             TWITTER_PERSONAL = input("Twitter Username: ")
+            if TWITTER_PERSONAL[0] != "@":
+                TWITTER_PERSONAL = f"@{TWITTER_PERSONAL}"
 
             print("\nVerify Twitter Data:")
             print(f"TWITTER_APP_KEY: \t{TWITTER_APP_KEY}")

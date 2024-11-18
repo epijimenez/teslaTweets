@@ -7,7 +7,7 @@ import json
 import logging
 
 home_dir = os.getenv('HOME')
-dir_teslatweet_userdata = f"{home_dir}/teslatweet-data.json"
+dir_teslatweet_userdata = f"{home_dir}/.teslatweet-data"
 
 # checking if the user data file is available
 if os.path.isfile(dir_teslatweet_userdata):
@@ -120,7 +120,7 @@ else:
 
     with open(dir_teslatweet_userdata, "w") as outfile:
         outfile.write(json_object)
-        logging.info(f"User data file created at {dir_teslatweet_userdata}. Please run again.")
+        print(f"\nUser data file created at {dir_teslatweet_userdata}. Please run again.")
         exit()
 
 class UserAccount:

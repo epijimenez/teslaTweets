@@ -1,21 +1,21 @@
 from setuptools import setup
 
 setup(
-    name='teslatweet',
+    name='teslatweets',
     version='1.1.1',
-    py_modules=['teslatweet'],
+    py_modules=['teslatweets'],
     python_requires=">=3.9",
     install_requires=["TeslaPy", "googlemaps", "DateTime", "requests_oauthlib", "requests"],
     dependency_links=[
         "https://pypi.org/project/"
     ],
-    packages=['teslatweet'],
+    packages=['teslatweets'],
     include_package_data=True,
-    package_dir={'teslatweet': 'teslatweet'},
-    package_data={'teslatweet': ['*']},
+    package_dir={'teslatweets': 'teslatweets'},
+    package_data={'teslatweets': ['*']},
     entry_points={
         'console_scripts': [
-            'teslatweet=teslatweet:main'
+            'teslatweets=teslatweets:main'
         ],
     }
 )

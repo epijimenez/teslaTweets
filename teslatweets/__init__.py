@@ -1,4 +1,4 @@
-from teslatweet.operations import teslatweets
+from teslatweets.operations import teslatweets
 
 
 def main():

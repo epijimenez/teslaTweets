@@ -3,7 +3,7 @@ import time
 import csv
 from datetime import datetime
 import subprocess
-from teslatweet.userdata import UserAccount
+from teslatweets.userdata import UserAccount
 import logging
 
 """

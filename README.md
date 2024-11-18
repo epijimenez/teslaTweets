@@ -13,12 +13,19 @@ It has dependencies on some standard Python libraries and the following:
 
 
 ## Installation
-0. Download the repository zip file and uncompress it.
-1. Install required libraries (teslaJSON and Twython)
-2. Edit teslaTweets.py with the information (Twitter and Tesla account).
-3. Run the following command with your Python interpreter: `python teslaTweets.py`
-4. This will create a log file and record current milage for the milestones (every 1000 miles) and maintance checks.
-5. EXTRA: If you will use the road_trip function, you need to create a Google API Key
+0. Clone the repository
+1. From the root folder of the cloned repository, use pip to install
+    pip3 install . --break-system-packages --user
+    Needs to add the --break-system-packages in order to run outside of virtualenvs 
+2. Reboot the system
+3. Run the script
+    teslatweets
+4. Your first run will guide you through the User Data set up
+5. After User Data set up, try a run manually by just ruuning the script again
+    teslatweets
+6. This will create a log file and record current milage for the milestones (every 1000 miles) and maintance checks
+7. Create a cronjob so it can run at an interval daily
+    hint: https://crontab.guru/
 
 ## Credits
 Thanks to authors 

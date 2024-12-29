@@ -134,7 +134,7 @@ def monitor_temp():
 # Added maintenance changes to the manual for TeslaSoftware Version 2019.36.1
 def monitor_maintenance():
     write_log('log', "Checking maintenance...")
-    maintenance_schedule = {'tire_rotation': 10000, 'brake_fluid': 20000, 'battery_coolant': 50000,
+    maintenance_schedule = {'tire_rotation': 6250, 'brake_fluid': 20000, 'battery_coolant': 50000,
                             'ac_desiccant': 75000}
 
     wakeup_car()

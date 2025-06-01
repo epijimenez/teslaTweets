@@ -15,6 +15,7 @@ LOG_FILE = LOG_PATH + '/TeslaLog.csv'
 YEAR_DAY = 0  # time.localtime().tm_yday
 UserAccount = UserAccount()
 
+
 def wakeup_car():
     try:
         UserAccount.tesla.sync_wake_up()
@@ -349,7 +350,6 @@ def write_log(writeup=None, data=None):
         return False
 
 
-# Press the green button in the gutter to run the script.
 def teslatweets():
     if not os.path.exists(LOG_PATH):
         subprocess.call(['mkdir', f"{os.getenv('HOME')}/logs"])
